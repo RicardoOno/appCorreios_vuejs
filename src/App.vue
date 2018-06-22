@@ -1,7 +1,7 @@
 <template>
-  <div class="container">
+  <b-container fluid>
     <meu-form></meu-form>
-  </div>
+  </b-container>
 </template>
 
 <script>

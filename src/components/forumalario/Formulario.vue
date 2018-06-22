@@ -1,6 +1,5 @@
 <template>
-    <div>
-        <div class="row">
+    <b-row>
             <form class="col-md-12" @submit.prevent="enviar()">
                 <div class="form-group">
                     <label for="cepO">Cep Origem</label>
@@ -18,9 +17,8 @@
                         <input type="checkbox" name="sedex"> SEDEX
                     </label>
                 </div>
-                <button type="submit" class="btn btn-default">Pesquisar</button>
+                <b-btn v-b-modal.modal1 type="submit" class="btn btn-default" id="pesquisar">Pesquisar</b-btn>
             </form>
-        </div>
         <p>
             <code>{{ xmlRes }}</code>
         </p>
@@ -32,27 +30,49 @@
             <p>{{ iTest.casa }}</p>
         </div>
         -->
-
-        <div class="row">
-            <div class="col-sm-6" v-for="iResult of result">
-                <b-card-group deck>
-                    <b-card class="margB"
-                            :title="iResult.codigo == 4014 ? 'Sedex' : 'PAC'"
-                            sub-title="1KG - Caixa 1">
-                        <div class="card-text">
-                            <div v-if="iResult.msgE == ''">
-                                <p>Prazo de entrega: {{ iResult.prazoEntrega }}</p>
-                                <p>Valor: {{ iResult.valor }}</p>
+        <b-modal size="lg" centered id="modal1" title="Bootstrap-Vue">
+        <b-row no-gutters>
+            <b-col>
+                <b-col cols="12" v-for="iResult of result['1k']">
+                    <b-card-group deck>
+                        <b-card class="margB"
+                                :title="iResult.codigo == 4014 ? 'Sedex' : 'PAC'"
+                                sub-title="1KG - Caixa 123">
+                            <div class="card-text">
+                                <div v-if="iResult.msgE == ''">
+                                    <p>Prazo de entrega: {{ iResult.prazoEntrega }}</p>
+                                    <p>Valor: {{ iResult.valor }}</p>
+                                </div>
+                                <div v-else>
+                                    <p class="erro">Erro: {{ iResult.msgE }}</p>
+                                </div>
                             </div>
-                            <div v-else>
-                                <p class="erro">Erro: {{ iResult.msgE }}</p>
+                        </b-card>
+                    </b-card-group>
+                </b-col>
+            </b-col>
+            <b-col>
+                <b-col cols="12" v-for="iResult of result['2k']">
+                    <b-card-group deck>
+                        <b-card class="margB"
+                                :title="iResult.codigo == 4014 ? 'Sedex' : 'PAC'"
+                                sub-title="2KG - Caixa 1">
+                            <div class="card-text">
+                                <div v-if="iResult.msgE == ''">
+                                    <p>Prazo de entrega: {{ iResult.prazoEntrega }}</p>
+                                    <p>Valor: {{ iResult.valor }}</p>
+                                </div>
+                                <div v-else>
+                                    <p class="erro">Erro: {{ iResult.msgE }}</p>
+                                </div>
                             </div>
-                        </div>
-                    </b-card>
-                </b-card-group>
-            </div>
-        </div>
-    </div>
+                        </b-card>
+                    </b-card-group>
+                </b-col>
+            </b-col>
+        </b-row>
+        </b-modal>
+    </b-row>
 </template>
 <script>
 
@@ -75,14 +95,19 @@
             enviar(){
                 console.log('Request doing - ', this.result.length);
                 if(this.result.length > 0){
-                    for(let i = 0; i <= this.result.length+1; i++){
+                    for(let i = 0; i <= 10; i++){
                         this.result.pop(i);
                     }
                 }
                 let xml, url, promise;
+                let data = {
+                    '1k': [],
+                    '2k': []
+                };
                 // $http só existe por causa do VueResource
                 //Executa a requisição http. Retornando uma promise
                 //url = 'http://ws.correios.com.br/calculador/CalcPrecoPrazo.asmx/CalcPrazo?nCdServico=04014&sCepOrigem=03544100&sCepDestino=06730970';
+                console.log(data['1k']);
                 url = 'http://ws.correios.com.br/calculador/CalcPrecoPrazo.asmx/CalcPrecoPrazo?nCdEmpresa=&sDsSenha=&nCdServico=04014,04510,04065&sCepOrigem=03544100&sCepDestino=06730970&nVlPeso=1&nCdFormato=1&nVlComprimento=18&nVlAltura=9&nVlLargura=27&nVlDiametro=5&sCdMaoPropria=N&nVlValorDeclarado=0&sCdAvisoRecebimento=N';
                 promise = this.$http
                     .get(url)
@@ -99,7 +124,7 @@
                                 let msgE = result.cResultado.Servicos[0].cServico[i].MsgErro[0];
                                 let val = result.cResultado.Servicos[0].cServico[i].Valor[0];
                                 console.log(JSON.stringify({'codigo': cod, 'prazoEntrega': prazE, 'msgE': msgE}));
-                                this.result.push({'codigo': cod, 'prazoEntrega': prazE, 'valor': val, 'msgE': msgE})
+                                data['1k'].push({'codigo': cod, 'prazoEntrega': prazE, 'valor': val, 'msgE': msgE})
                             }
                         });
                     }, err => {
@@ -122,18 +147,19 @@
                                 let msgE = result.cResultado.Servicos[0].cServico[i].MsgErro[0];
                                 let val = result.cResultado.Servicos[0].cServico[i].Valor[0];
                                 console.log(JSON.stringify({'codigo': cod, 'prazoEntrega': prazE, 'msgE': msgE}));
-                                this.result.push({'codigo': cod, 'prazoEntrega': prazE, 'valor': val, 'msgE': msgE})
+                                data['2k'].push({'codigo': cod, 'prazoEntrega': prazE, 'valor': val, 'msgE': msgE})
                             }
                         });
                     }, err => {
                         console.log(err);
                         this.xmlRes = 'Deu alguma coisa errada'
                     });
+                this.result = data;
             }
         }
     }
 </script>
-<style>
+<style scoped>
 
     .card-deck {
         margin-bottom: 15px;
@@ -141,5 +167,10 @@
     .erro {
         color: darkred;
     }
+
+    #pesquisar{
+        margin-bottom: 30px;
+    }
+
 
 </style>
