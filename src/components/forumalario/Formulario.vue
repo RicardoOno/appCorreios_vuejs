@@ -32,34 +32,18 @@
         </div>
         -->
         <b-modal size="lg" ref="modal" id="modal1" hide-footer title="Resultado">
+            <div v-if="hasData">
+                <div v-if="result[2][0] != null || result[2][1] != null">
 
-            <!--
-            <b-col sm="12">
-                <h1 class="text-center" >1KG - Caixa 2</h1>
-                <b-col cols="12" v-for="iResult of result[0]">
-
-                    <b-card-group deck>
-                        <b-card class="margB" :title="iResult.codigo == 4014 ? 'Sedex' : 'PAC'">
-                            <div class="card-text">
-                                <div v-if="iResult.msgE == ''">
-                                    <p><b>Prazo: </b><span class="align-middle "> {{ iResult.prazoEntrega }}</span> dias úteis</p>
-                                    <p><b>Valor:</b> <span class="align-middle">R${{ iResult.valor }}</span></p>
-                                </div>
-                                <div v-else>
-                                    <p class="erro">Erro: {{ iResult.msgE }}</p>
-                                </div>
-                            </div>
-                        </b-card>
-                    </b-card-group>
-                </b-col>
-            </b-col>
-            -->
-            <div role="tablist" >
+                    <h3 class=" error1 text-center">OPS! :( <br> Something wrong.</h3>
+                    <p class=" font-weight-light text-center">Cod.{{ result[2][0].codigo }} <br> Mensagem: {{ result[2][0].msg }}</p>
+                </div>
+                <div role="tablist" v-else>
                 <b-card no-body class="mb-1">
                     <b-card-header header-tag="header" class="p-1" role="tab">
-                        <b-btn block href="#" v-b-toggle.accordion1 variant="info">1KG - Caixa 2</b-btn>
+                        <b-btn block href="#"  v-b-toggle.accordion1 variant="info">1KG - Caixa 2</b-btn>
                     </b-card-header>
-                    <b-collapse id="accordion1"  accordion="my-accordion" role="tabpanel">
+                    <b-collapse id="accordion1"  visible  accordion="my-accordion" role="tabpanel">
                         <b-card-body class="cBody">
                             <b-col class="cFor" v-for="iResult of result[0]">
                                 <b-card-group class="cGroup" deck>
@@ -83,7 +67,7 @@
                     <b-card-header header-tag="header" class="p-1" role="tab">
                         <b-btn block href="#" v-b-toggle.accordion2 variant="info">2KG - Caixa 2</b-btn>
                     </b-card-header>
-                    <b-collapse id="accordion2" accordion="my-accordion" role="tabpanel">
+                    <b-collapse id="accordion2"  accordion="my-accordion" role="tabpanel">
                         <b-card-body class="cBody">
                             <b-col class="cFor" v-for="iResult of result[1]">
                                 <b-card-group class="cGroup" deck>
@@ -105,20 +89,27 @@
                 </b-card>
             </div>
             <b-btn class="mt-3" variant="outline-danger" block @click="hideModal">Close Me</b-btn>
+            </div>
+            <meu-loader v-if="!hasData" v-show="isOk"></meu-loader>
         </b-modal>
     </b-row>
 </template>
 <script>
-
+    import Loader from '../loader/Loader.vue';
     window.x2j = require('xml2js').parseString;
 
     export default {
+        components: {
+            'meu-loader': Loader
+        },
         data(){
             return {
                 result: [],
                 xmlRes: '',
                 cepO: '',
                 cepD: '',
+                isOk: false,
+                hasData: false,
                 selected: '03544-100',
                 options: [
                     { value: '03544-100', text: 'CEP padrão' },
@@ -131,12 +122,11 @@
         methods: {
 
             hideModal () {
-                this.$refs.modal.hide()
+                this.$refs.modal.hide();
             },
             enviar(){
-                if(this.result != null){
-
-                }
+                this.isOk = true;
+                this.hasData = false;
                 console.log('CEP DESTINO ----> ', this.cepD);
                 console.log('CEP ORIGEM  ----> ', this.selected);
                 //console.log('Request doing - ', this.result.length);
@@ -148,7 +138,8 @@
                 let xml, url, promise;
                 let data = {
                     0: [],
-                    1: []
+                    1: [],
+                    2: []
                 };
                 // $http só existe por causa do VueResource
                 //Executa a requisição http. Retornando uma promise
@@ -177,7 +168,8 @@
                         });
                     }, err => {
                         console.log(err);
-                        this.xmlRes = 'Deu alguma coisa errada'
+                        data[2].push({'codigo': '-999', 'msg':'Não foi possivel acesssar'});
+                        console.log('Deu alguma coisa errada 1');
                     });
                 url = 'https://cors-anywhere.herokuapp.com/http://ws.correios.com.br/calculador/CalcPrecoPrazo.asmx/CalcPrecoPrazo?nCdEmpresa=&sDsSenha=&nCdServico=04014,04510&sCepOrigem='+ this.selected + '&sCepDestino=' + this.cepD + '&nVlPeso=2&nCdFormato=1&nVlComprimento=18&nVlAltura=9&nVlLargura=13.5&nVlDiametro=5&sCdMaoPropria=N&nVlValorDeclarado=0&sCdAvisoRecebimento=N';
                 promise = this.$http
@@ -198,10 +190,15 @@
                                 // console.log(JSON.stringify({'codigo': cod, 'prazoEntrega': prazE, 'msgE': msgE}));
                                 data[1].push({'codigo': cod, 'prazoEntrega': prazE, 'valor': val, 'msgE': msgE})
                             }
+                            this.hasData = true;
+                            this.isOk = false;
                         });
                     }, err => {
                         // console.log(err);
-                        this.xmlRes = 'Deu alguma coisa errada'
+                        console.log('Deu alguma coisa errada 2');
+                        data[2].push({'codigo': '-999', 'msg': 'Não foi possivel acesssar'});
+                        this.hasData = true;
+                        this.isOk = false;
                     });
                 this.result = data;
             }
@@ -211,7 +208,7 @@
 <style scoped>
 
 
-    .erro {
+    .erro, .error1 {
         color: darkred;
     }
 
