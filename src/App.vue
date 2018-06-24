@@ -8,10 +8,10 @@
     import Formulario from './components/forumalario/Formulario.vue';
 
     export default {
+
       components:{
        'meu-form': Formulario
        }
-
     }
 </script>
 
