@@ -7,11 +7,11 @@
             <div></div>
         </div>
     </b-row>
+
     </div>
 </template>
 <script>
-    export default{
-
+    export default {
         data(){
             return{
 
@@ -20,6 +20,7 @@
     }
 </script>
 <style scoped>
+
     body {
         background-color: #000000;
     }

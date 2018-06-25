@@ -2,12 +2,11 @@
     <b-row>
         <b-col class="col-12">
             <b-form @submit.prevent="enviar()">
-                <label class="text-uppercase"><strong>CEP Origem:</strong></label>
-                    <b-form-select v-model="selected" :options="options"class="mb-3" />
+                    <label class="text-uppercase"><strong>CEP Origem:</strong></label>
+                    <b-form-select v-model="selected" :options="options"class="mb-3"  />
                     <p class="align-middle">Selecionado: <span class="align-middle"><strong>{{ selected }}</strong></span></p>
-                </b-form-group>
 
-                    <b-form-group id="exampleInputGroup1"
+                <b-form-group id="exampleInputGroup1"
                                   label="<strong class='text-uppercase'>CEP Destino:</strong>"
                                   label-for="exampleInput1">
                         <b-input
@@ -18,92 +17,28 @@
                                  v-mask="'#####-###'"
                                  autofocus>
                         </b-input>
-                        <p class="align-middle">CEP Destino: <span class="align-middle"><strong>{{ cepD }}</strong></span></p>
                 </b-form-group>
-                <b-btn v-b-modal.modal1 type="submit" class="btn btn-default" id="pesquisar">Calcular</b-btn>
+                <p class="align-middle">CEP Destino: <span class="align-middle"><strong>{{ cepD }}</strong></span></p>
+                <b-btn v-b-modal="myModal" type="submit" class="btn btn-default col-12" id="pesquisar">Calcular</b-btn>
             </b-form>
         </b-col>
-        <!--
-        <h1 class="col-md-12">Informações: </h1>
-        <div class="col-md-4" v-for="iTest of tests">
-            <h2 class="text-center col-md-4">{{ iTest.sobrenome }}</h2>
-            <p>{{ iTest.nome + ' ' + iTest.sobrenome}}</p>
-            <p>{{ iTest.casa }}</p>
-        </div>
-        -->
-        <b-modal size="lg" ref="modal" id="modal1" hide-footer title="Resultado">
-            <div v-if="hasData">
-                <div v-if="result[2][0] != null || result[2][1] != null">
-
-                    <h3 class=" error1 text-center">OPS! :( <br> Something wrong.</h3>
-                    <p class=" font-weight-light text-center">Cod.{{ result[2][0].codigo }} <br> Mensagem: {{ result[2][0].msg }}</p>
-                </div>
-                <div role="tablist" v-else>
-                <b-card no-body class="mb-1">
-                    <b-card-header header-tag="header" class="p-1" role="tab">
-                        <b-btn block href="#"  v-b-toggle.accordion1 variant="info">1KG - Caixa 2</b-btn>
-                    </b-card-header>
-                    <b-collapse id="accordion1"  visible  accordion="my-accordion" role="tabpanel">
-                        <b-card-body class="cBody">
-                            <b-col class="cFor" v-for="iResult of result[0]">
-                                <b-card-group class="cGroup" deck>
-                                    <b-card class="margB cCard" :title="iResult.codigo == 4014 ? 'Sedex' : 'PAC'">
-                                        <div class="card-text">
-                                            <div v-if="iResult.msgE == ''">
-                                                <p><b>Prazo: </b><span class="align-middle"> {{ iResult.prazoEntrega }}</span> dias úteis</p>
-                                                <p><b>Valor:</b> <span class="align-middle">R${{ iResult.valor }}</span></p>
-                                            </div>
-                                            <div v-else>
-                                                <p class="erro">Erro: {{ iResult.msgE }}</p>
-                                            </div>
-                                        </div>
-                                    </b-card>
-                                </b-card-group>
-                            </b-col>
-                        </b-card-body>
-                    </b-collapse>
-                </b-card>
-                <b-card no-body class="mb-1">
-                    <b-card-header header-tag="header" class="p-1" role="tab">
-                        <b-btn block href="#" v-b-toggle.accordion2 variant="info">2KG - Caixa 2</b-btn>
-                    </b-card-header>
-                    <b-collapse id="accordion2"  accordion="my-accordion" role="tabpanel">
-                        <b-card-body class="cBody">
-                            <b-col class="cFor" v-for="iResult of result[1]">
-                                <b-card-group class="cGroup" deck>
-                                    <b-card class="margB cCard" :title="iResult.codigo == 4014 ? 'Sedex' : 'PAC'">
-                                        <div class="card-text">
-                                            <div v-if="iResult.msgE == ''">
-                                                <p><b>Prazo: </b><span class="align-middle"> {{ iResult.prazoEntrega }}</span> dias úteis</p>
-                                                <p><b>Valor:</b> <span class="align-middle">R${{ iResult.valor }}</span></p>
-                                            </div>
-                                            <div v-else>
-                                                <p class="erro">Erro: {{ iResult.msgE }}</p>
-                                            </div>
-                                        </div>
-                                    </b-card>
-                                </b-card-group>
-                            </b-col>
-                        </b-card-body>
-                    </b-collapse>
-                </b-card>
-            </div>
-            <b-btn class="mt-3" variant="outline-danger" block @click="hideModal">Close Me</b-btn>
-            </div>
-            <meu-loader v-if="!hasData" v-show="isOk"></meu-loader>
-        </b-modal>
+        <meu-modal :hasData="hasData" :idModal="myModal" :result="result" :isOk="isOk"></meu-modal>
     </b-row>
 </template>
 <script>
-    import Loader from '../loader/Loader.vue';
+
+    import Modal from '../modal/Modal.vue';
+
     window.x2j = require('xml2js').parseString;
 
+
     export default {
-        components: {
-            'meu-loader': Loader
+        components:{
+            'meu-modal': Modal
         },
         data(){
             return {
+                myModal: 'modal',
                 result: [],
                 xmlRes: '',
                 cepO: '',
@@ -120,10 +55,6 @@
             }
         },
         methods: {
-
-            hideModal () {
-                this.$refs.modal.hide();
-            },
             enviar(){
                 this.isOk = true;
                 this.hasData = false;
@@ -173,7 +104,7 @@
                     });
                 url = 'https://cors-anywhere.herokuapp.com/http://ws.correios.com.br/calculador/CalcPrecoPrazo.asmx/CalcPrecoPrazo?nCdEmpresa=&sDsSenha=&nCdServico=04014,04510&sCepOrigem='+ this.selected + '&sCepDestino=' + this.cepD + '&nVlPeso=2&nCdFormato=1&nVlComprimento=18&nVlAltura=9&nVlLargura=13.5&nVlDiametro=5&sCdMaoPropria=N&nVlValorDeclarado=0&sCdAvisoRecebimento=N';
                 promise = this.$http
-                    .get(url, "Access-Control-Allow-Origin: *")
+                    .get(url)
                     .then(res => {
                         xml = res.body;
                         x2j(xml, (err, result) => {
@@ -218,18 +149,5 @@
     span{
         font-size:2em;
     }
-    .card-title {
-        border-bottom: 5px solid #cfcfcf;
-    }
-    .cBody {
-        padding: 0px;
-    }
-    .cCard {
-        padding: 0px;
-        border-radius: 0px;
-        border: 0px;
-    }
-    .cFor {
-        padding: 0;
-    }
+
 </style>
